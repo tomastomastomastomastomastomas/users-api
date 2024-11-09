@@ -1,5 +1,7 @@
 import sqlite3 from "sqlite3";
 const db = new sqlite3.Database("./src/database/users.db");
+db.run("PRAGMA busy_timeout = 5000;");
+db.run("PRAGMA journal_mode=WAL;");
 db.run(`CREATE TABLE IF NOT EXISTS users(
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         username TEXT NOT NULL UNIQUE,
@@ -8,6 +10,4 @@ db.run(`CREATE TABLE IF NOT EXISTS users(
         fullname TEXT NOT NULL,
         role TEXT NOT NULL
     )`);
-db.run("PRAGMA busy_timeout = 5000;");
-db.run("PRAGMA journal_mode=WAL;");
 export default db;

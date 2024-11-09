@@ -1,5 +1,6 @@
 import bcrypt from "bcrypt";
-import { insertNewtUser, getUser } from "./querys.js";
+import { insertNewtUser } from "./querys.js";
+import createToken from "./sesion.js";
 const saltRounds = 10;
 
 // bcrypt.hash("myPlaintextPassword", saltRounds, function (err, hash) {
@@ -29,24 +30,19 @@ const saltRounds = 10;
 
 async function registerUser(req, res) {
   const body = req.body;
-  const hash = await generateHash(req.body.password);
-  res.status(201).json({ message: "User registered succesfully" });
-  const result = await insertNewtUser(
-    body.userName,
-    body.email,
-    hash,
-    body.fullname,
-    "user"
-  );
-  console.log(result);
-  if (result.error) {
-    return res.status(result.code).json({ error: result.error });
-  }
-  res.status(result.code).json({ message: result.error });
+  const hash = await generateHash(body.password);
+  insertNewtUser(body.userName, body.email, hash, body.fullname, "user")
+    .then((result) => {
+      const token = createToken(body.email);
+      res.cookie("token", token);
+      res.status(result.code).json({ message: result.message });
+    })
+    .catch((err) => {
+      res.status(err.code).json({ message: err.message });
+    });
 }
 
 function generateHash(password) {
   return bcrypt.hash(password, saltRounds);
 }
-
 export default registerUser;
